@@ -1,0 +1,25 @@
+while getopts s:i: option
+
+do
+        case "${option}"
+        in
+                s) 
+			SERVER=${OPTARG}
+			s_set=true;;
+                i) 
+			ID=${OPTARG}
+			i_set=true;;
+        esac
+done
+
+if [ "$s_set" != "true" ] || [ "$i_set" != "true" ] ; then 
+	echo "Model id or Server not set. Usage dwlmodel -s server_name -i model_id" && exit
+fi
+
+ssh -t $SERVER "cd /nodeserver/assets/models && tar cvf /nodeserver/$ID.tar $ID"
+scp "$SERVER:/nodeserver/$ID.tar" ./ 
+ssh -t $SERVER "rm /nodeserver/$ID.tar"
+tar xvf "$ID.tar"
+rm "$ID.tar"
+
+echo 'Operation Success'

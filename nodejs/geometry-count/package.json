@@ -1,0 +1,28 @@
+{
+  "name": "viewer-server",
+  "version": "10.3.1",
+  "description": "NodeJS' viewer server",
+  "author": "Santiago Roca <snroca@hotmail.com>",
+  "main": "main.js",
+  "bin": {
+    "module-name": "./bin/module-name"
+  },
+  "scripts": {
+    "start": "npm install && node server.min.js",
+    "test": "npm install && mocha utest/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YouBIM/YouBIM_v4_Viewer"
+  },
+  "dependencies": {
+    "graceful-fs": "4.1.2",
+    "util": "0.10.3",
+    "utils": "0.3.1"
+  },
+  "preferGlobal": true,
+  "private": true,
+  "devDependencies": {
+    "shelljs": "^0.7.0"
+  }
+}

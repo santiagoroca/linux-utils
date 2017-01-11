@@ -1,0 +1,49 @@
+#!/bin/bash
+
+SERVER="node_dev"
+BRANCH="dev-test"
+
+while getopts s:i: option
+
+do
+        case "${option}"
+        in
+                s) 
+			SERVER=${OPTARG}
+
+			if [ "$SERVER" != "node_dev" ] ; then 
+				BRANCH = "master"
+			fi
+
+			s_set=true;;
+        esac
+done
+
+if [ "$s_set" != "true" ] ; then 
+	echo "Server not set. Deploying on 'Development Enviroment (node_dev)'"
+fi
+
+printf "-----------------------\n\n"
+echo -ne "Connecting to server"
+
+ssh $SERVER << EOF
+	cd /nodeserver/opc.app
+	
+	echo -ne "Connected to server"
+	echo "Pulling from repository"
+
+	git checkout -- . && git clean -df && git pull https://{credentials}@github.com/YouBIM/{REPO} $BRANCH &> /dev/null
+
+	echo -ne "Pulled from repository"
+	echo "Restarting process"
+
+	pm2 restart "OPC API" &> /dev/null
+
+	echo "Process Restarted"
+
+	printf "\n\n"
+
+	pm2 list | grep "OPC API" 
+	exit
+EOF
+

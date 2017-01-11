@@ -1,0 +1,1 @@
+node nodejs/geometry-count/run.js $(pwd)

@@ -1,0 +1,48 @@
+#!/bin/bash
+
+SERVER="node_dev"
+BRANCH="master"
+
+while getopts s:v: option
+
+do
+        case "${option}"
+        in
+                s) 
+			SERVER=${OPTARG}
+			s_set=true;;
+		v)
+			VERSION=${OPTARG};;
+        esac
+done
+
+if [ "$s_set" != "true" ] ; then 
+	echo "Server not set. Deploying on 'Development Enviroment (node_dev)'"
+fi
+
+printf "-----------------------\n\n"
+echo -ne "Connecting to server"
+
+ssh $SERVER << EOF
+	cd /nodeserver/aphrodite.git
+	
+	echo -ne "Connected to server"
+	echo "Pulling from repository"
+
+	git checkout -- . && git clean -df && git pull https://{credentials}@github.com/{REPO} $BRANCH &> /dev/null
+	chmod +x build.sh
+	./build.sh $VERSION
+
+	cd artifacts
+	tar xvf "youbim-geometries-$VERSION.tar" -C /nodeserver/aphrodite
+
+	pm2 restart "GEO API" &> /dev/null
+
+	echo "Process Restarted"
+
+	printf "\n\n"
+
+	pm2 list | grep "GEO API" 
+	exit
+EOF
+

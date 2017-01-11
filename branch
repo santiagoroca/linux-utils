@@ -1,0 +1,96 @@
+#!/bin/bash
+
+MESSAGE=false
+BRANCH_NAME=false
+TITLE=false
+
+function push_branch_origin () {
+    git push origin $(current_branch_name)
+}
+
+function create_branch () {
+    git checkout -b "$BRANCH_NAME"
+}
+
+function commit_branch () {
+    git add -A
+    git commit -m "$MESSAGE"
+}
+
+function help () {
+   echo -e ""
+   echo -e "\e[4m\e[1mBranch Utility Ussage\e[21m\e[24m"
+   echo -e ""
+   echo -e "\e[31mpush \e[39m\e[21m- pushes all commits to current remote branch."
+   echo -e "\e[31mpushcsg \e[39m\e[21m- Add all changes, commits, and push to current remote branch."
+   echo -e "	 -m commit message"
+   echo -e ""
+}
+
+function remote_branch_exists () {
+   git fetch origin >/dev/null
+   return git branch -r --contains $mybranch
+}
+
+function is_git_repository () {
+    return "$(ls -a | awk '{ if ($1 == ".git") printf "1" }')"
+}
+
+function current_branch_name () {
+    echo "$(git branch | awk '{ if ($1 == "*") printf $2}')"
+}
+
+function repository_name () {
+    echo $(basename $(git remote -v | awk '{if ($3 == "(fetch)") printf $2}' | sed 's/.*\///g') .git)
+}
+
+function prequest () {
+   echo $(current_branch_name)
+
+    echo "{" > pr-payload.temp
+    echo "\"title\": \"[$/(current_branch_name)] $TITLE\"," >> pr-payload.temp
+    echo "\"message\": \"$MESSAGE\"," >> pr-payload.temp 
+    echo "\"head\": \"youbim:$(current_branch_name)\"," >> pr-payload.temp
+    echo "\"base\": \"master\"" >> pr-payload.temp
+    echo "}" >> pr-payload.temp
+ 
+    curl -u {deploy_key} -X POST --header "Content-Type:application/json" -d @pr-payload.temp "https://api.github.com/repos/{owner}/$(repository_name)/pulls"
+
+    rm pr-payload.temp
+}
+ 
+
+# If not git repository exit (check this function)
+
+if [ is_git_repostory = 1 ] ; then
+    echo 'You are not in a git repository'
+    exit
+fi
+
+# Check for master/dev-test branch not working
+#
+#if ([ $(branch_name) = "master" ] || [ $(branch_name) = "dev-test" ]) && [ -z "$($@ | grep -w "\-f"" ]; then 
+#    echo "You are on master/dev-test. If you want to proceed anyway add '-f'"
+#    exit
+#fi
+
+while getopts m:b:t:p: option
+
+do
+        case "${option}"
+        in
+                m) 
+			MESSAGE=${OPTARG}
+			commit_branch;;
+                b) 
+			BRANCH_NAME=${OPTARG}
+			create_branch;;
+
+		p)
+			push_branch_origin;;
+
+		t)
+			TITLE=${OPTARG}
+			prequest;;
+        esac
+done

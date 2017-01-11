@@ -1,0 +1,1 @@
+node /home/santi/Documentos/Projects/nodejs/virtual-server/http.js dirname=$(pwd)
